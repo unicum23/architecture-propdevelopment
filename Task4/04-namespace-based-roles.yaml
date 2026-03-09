@@ -1,0 +1,217 @@
+---
+# Пример: Role для команды разработки в namespace "development"
+# Разграничение доступа по организационной структуре компании
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: development
+  name: development-team-role
+  labels:
+    rbac-group: development-team
+    namespace: development
+    description: "For-development"
+rules:
+  # Полное управление подами
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["*"]
+  # Управление сервисами
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["*"]
+  # Управление развертываниями
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["*"]
+  # Управление конфигурационными картами
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["*"]
+  # Просмотр секретов (но не изменение)
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch"]
+  # Доступ к логам
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get", "list"]
+  # Выполнение команд в подах
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+
+---
+# RoleBinding для команды разработки
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: development-team-binding
+  namespace: development
+  labels:
+    rbac-group: development-team
+subjects:
+  - kind: Group
+    name: "development-team"
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: development-team-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Пример: Role для команды тестирования в namespace "testing"
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: testing
+  name: testing-team-role
+  labels:
+    rbac-group: testing-team
+    namespace: testing
+    description: "Role-testing"
+rules:
+  # Просмотр подов
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+  # Просмотр сервисов
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list", "watch"]
+  # Просмотр развертываний
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list", "watch"]
+  # Просмотр конфигурационных карт
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch"]
+  # Доступ к логам для анализа
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get", "list"]
+  # Создание тестовых подов
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["create", "delete"]
+
+---
+# RoleBinding для команды тестирования
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: testing-team-binding
+  namespace: testing
+  labels:
+    rbac-group: testing-team
+subjects:
+  - kind: Group
+    name: "testing-team"
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: testing-team-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Пример: Role для команды продакшена в namespace "production"
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: production
+  name: production-team-role
+  labels:
+    rbac-group: production-team
+    namespace: production
+    description: "Role-production"
+rules:
+  # Просмотр ресурсов (мониторинг)
+  - apiGroups: [""]
+    resources: ["pods", "services"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "statefulsets"]
+    verbs: ["get", "list", "watch"]
+  # Ограниченное управление (только масштабирование)
+  - apiGroups: ["apps"]
+    resources: ["deployments/scale"]
+    verbs: ["get", "update"]
+  # Просмотр конфигурационных карт
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch"]
+  # Доступ к логам
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get", "list"]
+  # Просмотр событий
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list", "watch"]
+
+---
+# RoleBinding для команды продакшена
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: production-team-binding
+  namespace: production
+  labels:
+    rbac-group: production-team
+subjects:
+  - kind: Group
+    name: "production-team"
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: production-team-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Пример: Role для команды безопасности в namespace "security"
+# Эта команда имеет доступ к секретам для аудита
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: security
+  name: security-team-role
+  labels:
+    rbac-group: security-team
+    namespace: security
+    description: "Role-security"
+rules:
+  # Полный доступ к секретам (для аудита безопасности)
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch"]
+  # Просмотр всех ресурсов
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs: ["get", "list", "watch"]
+  # Просмотр событий безопасности
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list", "watch"]
+  # Доступ к логам
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get", "list"]
+
+---
+# RoleBinding для команды безопасности
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: security-team-binding
+  namespace: security
+  labels:
+    rbac-group: security-team
+subjects:
+  - kind: Group
+    name: "security-team"
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: security-team-role
+  apiGroup: rbac.authorization.k8s.io
+

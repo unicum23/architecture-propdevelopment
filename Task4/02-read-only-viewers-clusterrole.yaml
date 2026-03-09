@@ -1,0 +1,75 @@
+---
+# ClusterRole для пользователей только с правами просмотра
+# Эта группа может только просматривать ресурсы, но не может их изменять
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: read-only-viewer
+  labels:
+    rbac-group: read-only-viewers
+    description: "Read-only"
+rules:
+  # Просмотр всех ресурсов (но не секретов)
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs: ["get", "list", "watch"]
+  # Просмотр подов
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+  # Просмотр сервисов
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list", "watch"]
+  # Просмотр развертываний
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "statefulsets", "daemonsets"]
+    verbs: ["get", "list", "watch"]
+  # Просмотр ingress
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list", "watch"]
+  # Просмотр конфигурационных карт (без содержимого секретных данных)
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch"]
+  # Просмотр persistent volumes
+  - apiGroups: [""]
+    resources: ["persistentvolumes", "persistentvolumeclaims"]
+    verbs: ["get", "list", "watch"]
+  # Просмотр узлов кластера
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "watch"]
+  # Просмотр пространств имен
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list", "watch"]
+  # Просмотр событий
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list", "watch"]
+  # Просмотр логов подов (только чтение)
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get", "list"]
+  # Нет доступа к выполнению команд в подах
+  # Нет доступа к портам подов
+
+---
+# ClusterRoleBinding для пользователей только с правами просмотра
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: read-only-viewer-binding
+  labels:
+    rbac-group: read-only-viewers
+subjects:
+  - kind: Group
+    name: "read-only-viewers"
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: read-only-viewer
+  apiGroup: rbac.authorization.k8s.io
+
