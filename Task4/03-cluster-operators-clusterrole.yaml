@@ -1,0 +1,89 @@
+---
+# ClusterRole для операторов кластера
+# Эта группа может настраивать и управлять кластером, но без доступа к секретам
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cluster-operator
+  labels:
+    rbac-group: cluster-operators
+    description: "Cluster-operators"
+rules:
+  # Управление подами
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Управление сервисами
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Управление развертываниями
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "statefulsets", "daemonsets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Управление ingress
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Управление конфигурационными картами (но не секретами)
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Управление persistent volumes
+  - apiGroups: [""]
+    resources: ["persistentvolumes", "persistentvolumeclaims"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Просмотр узлов (без изменения)
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "watch"]
+  # Управление пространствами имен
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  # Просмотр и создание событий
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list", "watch", "create", "patch"]
+  # Доступ к логам подов
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get", "list"]
+  # Выполнение команд в подах (для отладки)
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+  # Проброс портов подов
+  - apiGroups: [""]
+    resources: ["pods/portforward"]
+    verbs: ["create"]
+  # Управление горизонтальными автомасштабировщиками
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Управление jobs и cronjobs
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Просмотр метрик
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["*"]
+    verbs: ["get", "list"]
+
+---
+# ClusterRoleBinding для операторов кластера
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cluster-operator-binding
+  labels:
+    rbac-group: cluster-operators
+subjects:
+  - kind: Group
+    name: "cluster-operators"
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: cluster-operator
+  apiGroup: rbac.authorization.k8s.io
+

@@ -1,0 +1,94 @@
+---
+# ClusterRole для привилегированных администраторов
+# Эта группа имеет полный доступ ко всем ресурсам кластера, включая секреты
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: privileged-admin
+  labels:
+    rbac-group: privileged-admins
+    description: "Full-access"
+rules:
+  # Полный доступ ко всем ресурсам во всех API группах
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs: ["*"]
+  # Доступ к секретам (включая просмотр и изменение)
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Доступ к конфигурационным картам
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["*"]
+  # Доступ к подам
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["*"]
+  # Доступ к сервисам
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["*"]
+  # Доступ к развертываниям
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "statefulsets", "daemonsets"]
+    verbs: ["*"]
+  # Доступ к ingress
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["*"]
+  # Доступ к persistent volumes
+  - apiGroups: [""]
+    resources: ["persistentvolumes", "persistentvolumeclaims"]
+    verbs: ["*"]
+  # Доступ к узлам кластера
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "watch", "patch", "update"]
+  # Доступ к пространствам имен
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["*"]
+  # Доступ к событиям
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["*"]
+  # Доступ к логам подов
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get", "list"]
+  # Доступ к выполнению команд в подах
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+  # Доступ к портам подов
+  - apiGroups: [""]
+    resources: ["pods/portforward"]
+    verbs: ["create"]
+  # Доступ к метрикам
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["*"]
+    verbs: ["*"]
+
+---
+# ClusterRoleBinding для привилегированных администраторов
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: privileged-admin-binding
+  labels:
+    rbac-group: privileged-admins
+subjects:
+  # Группа пользователей в системе аутентификации (например, LDAP/Active Directory)
+  - kind: Group
+    name: "privileged-admins"
+    apiGroup: rbac.authorization.k8s.io
+  # Можно также добавить конкретных пользователей
+  # - kind: User
+  #   name: "admin@example.com"
+  #   apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: privileged-admin
+  apiGroup: rbac.authorization.k8s.io
+
